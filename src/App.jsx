@@ -4,6 +4,7 @@ import StatsOverview from './components/StatsOverview';
 import KanbanColumn from './components/KanbanColumn';
 import TaskModal from './components/TaskModal';
 import AgentGuideModal from './components/AgentGuideModal';
+import NewTaskSetModal from './components/NewTaskSetModal';
 
 const API_BASE = '/api';
 
@@ -15,15 +16,25 @@ const COLUMNS = [
   { id: 'done', title: 'Done', icon: 'CheckCircle2', color: '#10b981' }
 ];
 
+const getTodayDateString = () => {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 export default function App() {
   const [tasks, setTasks] = useState([]);
   const [search, setSearch] = useState('');
   const [selectedTaskSet, setSelectedTaskSet] = useState('ALL');
-  const [dateFilter, setDateFilter] = useState('');
+  const [dateFilter, setDateFilter] = useState(getTodayDateString());
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isGuideOpen, setIsGuideOpen] = useState(false);
+  const [isNewTaskSetModalOpen, setIsNewTaskSetModalOpen] = useState(false);
+  const [customTaskSets, setCustomTaskSets] = useState([]);
 
   // Fetch initial tasks
   const fetchTasks = async () => {
@@ -45,14 +56,11 @@ export default function App() {
     fetchTasks();
   }, []);
 
-  const [customTaskSets, setCustomTaskSets] = useState([]);
-
   // Compute unique Task Sets
   const rawSets = tasks.map(t => t.taskSet || t.task_set || 'Default');
   const taskSets = Array.from(new Set(['Default', ...customTaskSets, ...rawSets, ...(selectedTaskSet !== 'ALL' ? [selectedTaskSet] : [])]));
 
-  const handleCreateTaskSet = () => {
-    const setName = prompt('Enter a name for the new Task Set / Batch (e.g., "Sprint 1", "Auth Feature"):');
+  const handleCreateTaskSet = (setName) => {
     if (setName && setName.trim()) {
       const cleaned = setName.trim();
       setCustomTaskSets(prev => Array.from(new Set([...prev, cleaned])));
@@ -194,7 +202,7 @@ export default function App() {
         selectedTaskSet={selectedTaskSet}
         setSelectedTaskSet={setSelectedTaskSet}
         taskSets={taskSets}
-        onCreateTaskSet={handleCreateTaskSet}
+        onCreateTaskSet={() => setIsNewTaskSetModalOpen(true)}
         dateFilter={dateFilter}
         setDateFilter={setDateFilter}
         onOpenNewTask={handleOpenNewTask}
@@ -229,6 +237,12 @@ export default function App() {
       <AgentGuideModal
         isOpen={isGuideOpen}
         onClose={() => setIsGuideOpen(false)}
+      />
+
+      <NewTaskSetModal
+        isOpen={isNewTaskSetModalOpen}
+        onClose={() => setIsNewTaskSetModalOpen(false)}
+        onCreate={handleCreateTaskSet}
       />
     </div>
   );
