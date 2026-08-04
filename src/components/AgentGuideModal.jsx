@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Copy, Check, Terminal, Code, MessageSquare, Bot } from 'lucide-react';
+import { X, Copy, Check, Bot } from 'lucide-react';
 
 export default function AgentGuideModal({ isOpen, onClose }) {
   if (!isOpen) return null;

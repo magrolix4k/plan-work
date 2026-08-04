@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Trash2, Send, Clock, Bot, User, MessageSquare } from 'lucide-react';
+import { X, Trash2, Send, Clock } from 'lucide-react';
 
 export default function TaskModal({ task, isOpen, onClose, onSave, onDelete, onAddLog }) {
   if (!isOpen || !task) return null;

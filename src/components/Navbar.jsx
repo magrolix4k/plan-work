@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bot, Plus, Search, Terminal, Zap, RefreshCw } from 'lucide-react';
+import { Bot, Plus, Search, Terminal, RefreshCw } from 'lucide-react';
 
 export default function Navbar({ search, setSearch, onOpenNewTask, onOpenGuide, isConnected, onResetSeed }) {
   return (

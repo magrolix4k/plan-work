@@ -1,9 +1,12 @@
 import React from 'react';
-import { MessageSquare, User, Bot, CheckCircle2, Clock } from 'lucide-react';
+import { MessageSquare } from 'lucide-react';
 
 export default function TaskCard({ task, onClick, onDragStart }) {
-  const latestLog = task.logs && task.logs.length > 0 ? task.logs[0] : null;
-  const isAIAssignee = task.assignee && (task.assignee.toLowerCase().includes('ai') || task.assignee.toLowerCase().includes('antigravity') || task.assignee.toLowerCase().includes('agent'));
+  const isAIAssignee = task.assignee && (
+    task.assignee.toLowerCase().includes('ai') ||
+    task.assignee.toLowerCase().includes('antigravity') ||
+    task.assignee.toLowerCase().includes('agent')
+  );
 
   return (
     <div
@@ -26,7 +29,6 @@ export default function TaskCard({ task, onClick, onDragStart }) {
         <div className="task-desc">{task.description}</div>
       )}
 
-      {/* Progress Bar */}
       <div className="progress-container">
         <div className="progress-bar-bg">
           <div
@@ -37,7 +39,6 @@ export default function TaskCard({ task, onClick, onDragStart }) {
         <span className="progress-text">{task.progress || 0}%</span>
       </div>
 
-      {/* Tags */}
       {task.tags && task.tags.length > 0 && (
         <div className="tags-row">
           {task.tags.map((tag, idx) => (
@@ -46,7 +47,6 @@ export default function TaskCard({ task, onClick, onDragStart }) {
         </div>
       )}
 
-      {/* Footer info */}
       <div className="task-footer">
         <div className="assignee-tag">
           {isAIAssignee ? (
