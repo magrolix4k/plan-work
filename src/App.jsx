@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Navbar from './components/Navbar';
 import StatsOverview from './components/StatsOverview';
 import KanbanColumn from './components/KanbanColumn';
@@ -38,7 +38,7 @@ export default function App() {
   const [customTaskSets, setCustomTaskSets] = useState([]);
 
   // Fetch initial tasks and task sets
-  const fetchTasks = async () => {
+  const fetchTasks = useCallback(async () => {
     setIsRefreshing(true);
     try {
       const res = await fetch(`${API_BASE}/tasks`);
@@ -51,9 +51,9 @@ export default function App() {
     } finally {
       setTimeout(() => setIsRefreshing(false), 500);
     }
-  };
+  }, []);
 
-  const fetchTaskSets = async () => {
+  const fetchTaskSets = useCallback(async () => {
     try {
       const res = await fetch(`${API_BASE}/task-sets`);
       const data = await res.json();
@@ -63,18 +63,21 @@ export default function App() {
     } catch (err) {
       console.error('Failed to fetch task sets:', err);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchTasks();
     fetchTaskSets();
-  }, []);
+  }, [fetchTasks, fetchTaskSets]);
 
-  // Compute unique Task Sets
-  const rawSets = tasks.map(t => t.taskSet || t.task_set || 'Default');
-  const taskSets = Array.from(new Set(['Default', ...dbTaskSets, ...customTaskSets, ...rawSets, ...(selectedTaskSet !== 'ALL' ? [selectedTaskSet] : [])]));
+  // Memoize unique Task Sets computation
+  const taskSets = useMemo(() => {
+    const rawSets = tasks.map(t => t.taskSet || t.task_set || 'Default');
+    const validSelection = selectedTaskSet !== 'ALL' && selectedTaskSet !== '__NEW__' ? [selectedTaskSet] : [];
+    return Array.from(new Set(['Default', ...dbTaskSets, ...customTaskSets, ...rawSets, ...validSelection]));
+  }, [tasks, dbTaskSets, customTaskSets, selectedTaskSet]);
 
-  const handleCreateTaskSet = async (setName) => {
+  const handleCreateTaskSet = useCallback(async (setName) => {
     if (setName && setName.trim()) {
       const cleaned = setName.trim();
       setCustomTaskSets(prev => Array.from(new Set([...prev, cleaned])));
@@ -90,10 +93,10 @@ export default function App() {
         console.error('Failed to save task set to DB:', err);
       }
     }
-  };
+  }, [fetchTaskSets]);
 
   // Drag and Drop Column Handler
-  const handleDropTask = async (taskId, newStatus) => {
+  const handleDropTask = useCallback(async (taskId, newStatus) => {
     const task = tasks.find(t => t.id === taskId);
     if (!task || task.status === newStatus) return;
 
@@ -118,10 +121,10 @@ export default function App() {
       console.error('Failed to update task status:', err);
       setTasks(previousTasks);
     }
-  };
+  }, [tasks]);
 
-  const handleOpenNewTask = () => {
-    const currentSet = selectedTaskSet === 'ALL' ? 'Default' : selectedTaskSet;
+  const handleOpenNewTask = useCallback(() => {
+    const currentSet = (selectedTaskSet === 'ALL' || selectedTaskSet === '__NEW__') ? 'Default' : selectedTaskSet;
     setSelectedTask({
       id: `new-${Date.now()}`,
       title: '',
@@ -135,48 +138,48 @@ export default function App() {
       logs: []
     });
     setIsModalOpen(true);
-  };
+  }, [selectedTaskSet]);
 
-  const handleTaskClick = (task) => {
+  const handleTaskClick = useCallback((task) => {
     setSelectedTask(task);
     setIsModalOpen(true);
-  };
+  }, []);
 
-  const handleSaveTask = async (id, formData) => {
+  const handleSaveTask = useCallback(async (id, formData) => {
     try {
       if (id.startsWith('new')) {
-        const res = await fetch(`${API_BASE}/tasks`, {
+        await fetch(`${API_BASE}/tasks`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData)
         });
-        await res.json();
       } else {
-        const res = await fetch(`${API_BASE}/tasks/${id}`, {
+        await fetch(`${API_BASE}/tasks/${id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData)
         });
-        await res.json();
       }
       fetchTasks();
+      fetchTaskSets();
       setIsModalOpen(false);
     } catch (err) {
       console.error('Failed to save task:', err);
     }
-  };
+  }, [fetchTasks, fetchTaskSets]);
 
-  const handleDeleteTask = async (id) => {
+  const handleDeleteTask = useCallback(async (id) => {
     try {
       await fetch(`${API_BASE}/tasks/${id}`, { method: 'DELETE' });
       fetchTasks();
+      fetchTaskSets();
       setIsModalOpen(false);
     } catch (err) {
       console.error('Failed to delete task:', err);
     }
-  };
+  }, [fetchTasks, fetchTaskSets]);
 
-  const handleAddLog = async (id, logData) => {
+  const handleAddLog = useCallback(async (id, logData) => {
     try {
       await fetch(`${API_BASE}/tasks/${id}/logs`, {
         method: 'POST',
@@ -187,36 +190,38 @@ export default function App() {
     } catch (err) {
       console.error('Failed to add log:', err);
     }
-  };
+  }, [fetchTasks]);
 
-  // Filter tasks based on Search, Task Set, and Date
-  const filteredTasks = tasks.filter(t => {
-    // 1. Task Set filter
-    const taskSet = t.taskSet || t.task_set || 'Default';
-    if (selectedTaskSet !== 'ALL' && taskSet.toLowerCase() !== selectedTaskSet.toLowerCase()) {
-      return false;
-    }
-
-    // 2. Date filter (YYYY-MM-DD)
-    if (dateFilter) {
-      const createdAt = t.created_at || t.createdAt || '';
-      if (!createdAt.startsWith(dateFilter)) {
+  // Memoize Filtered Tasks computation
+  const filteredTasks = useMemo(() => {
+    return tasks.filter(t => {
+      // 1. Task Set filter
+      const taskSet = t.taskSet || t.task_set || 'Default';
+      if (selectedTaskSet !== 'ALL' && selectedTaskSet !== '__NEW__' && taskSet.toLowerCase() !== selectedTaskSet.toLowerCase()) {
         return false;
       }
-    }
 
-    // 3. Search query filter
-    const q = search.toLowerCase();
-    if (!q) return true;
-    return (
-      t.title.toLowerCase().includes(q) ||
-      (t.description && t.description.toLowerCase().includes(q)) ||
-      (t.assignee && t.assignee.toLowerCase().includes(q)) ||
-      (t.tags && t.tags.some(tag => tag.toLowerCase().includes(q))) ||
-      t.id.toLowerCase().includes(q) ||
-      taskSet.toLowerCase().includes(q)
-    );
-  });
+      // 2. Date filter (YYYY-MM-DD)
+      if (dateFilter) {
+        const createdAt = t.created_at || t.createdAt || '';
+        if (!createdAt.startsWith(dateFilter)) {
+          return false;
+        }
+      }
+
+      // 3. Search query filter
+      const q = search.toLowerCase();
+      if (!q) return true;
+      return (
+        t.title.toLowerCase().includes(q) ||
+        (t.description && t.description.toLowerCase().includes(q)) ||
+        (t.assignee && t.assignee.toLowerCase().includes(q)) ||
+        (t.tags && t.tags.some(tag => tag.toLowerCase().includes(q))) ||
+        t.id.toLowerCase().includes(q) ||
+        taskSet.toLowerCase().includes(q)
+      );
+    });
+  }, [tasks, selectedTaskSet, dateFilter, search]);
 
   return (
     <div className="app-container">
