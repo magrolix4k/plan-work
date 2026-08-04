@@ -1,5 +1,47 @@
 [
   {
+    "id": "task-1785812291389",
+    "title": "Live Supabase PostgreSQL Task",
+    "description": "",
+    "status": "plan",
+    "priority": "high",
+    "tags": [],
+    "assignee": "Antigravity AI",
+    "progress": 0,
+    "logs": [
+      {
+        "id": "log-1785812291390",
+        "timestamp": "2026-08-04T02:58:11.390Z",
+        "author": "Antigravity AI",
+        "action": "CREATED",
+        "note": "Inserted directly into Supabase Cloud DB!"
+      }
+    ],
+    "createdAt": "2026-08-04T02:58:11.390Z",
+    "updatedAt": "2026-08-04T02:58:11.390Z"
+  },
+  {
+    "id": "task-1785812281284",
+    "title": "Live Supabase PostgreSQL Task",
+    "description": "",
+    "status": "plan",
+    "priority": "high",
+    "tags": [],
+    "assignee": "Antigravity AI",
+    "progress": 0,
+    "logs": [
+      {
+        "id": "log-1785812281284",
+        "timestamp": "2026-08-04T02:58:01.284Z",
+        "author": "Antigravity AI",
+        "action": "CREATED",
+        "note": "Inserted directly into Supabase Cloud DB!"
+      }
+    ],
+    "createdAt": "2026-08-04T02:58:01.284Z",
+    "updatedAt": "2026-08-04T02:58:01.284Z"
+  },
+  {
     "id": "task-1785811958846",
     "title": "Supabase Integration Verification Task",
     "description": "",
