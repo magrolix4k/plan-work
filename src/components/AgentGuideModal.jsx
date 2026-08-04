@@ -12,23 +12,29 @@ export default function AgentGuideModal({ isOpen, onClose }) {
     setTimeout(() => setCopiedSection(null), 2000);
   };
 
-  const cliExample = `./task-agent.sh list
-./task-agent.sh create "Implement auth endpoint" --status=plan --priority=high
+  const cliExample = `# List tasks in a specific Task Set
+./task-agent.sh list --set="Sprint 1"
+
+# Create a task in a specific Task Set
+./task-agent.sh create "Implement auth endpoint" --set="Sprint 1" --status=plan --priority=high
+
+# Update progress & move status
 ./task-agent.sh update task-101 --status=in_progress --progress=50 --log="Drafted JWT validation"
 ./task-agent.sh complete task-101 --log="All unit tests passed"`;
 
-  const curlExample = `# Update task status to In Progress
-curl -X PATCH https://plan-work-nu.vercel.app/api/tasks/task-101 \\
+  const curlExample = `# Create task in a specific Task Set
+curl -X POST https://plan-work-nu.vercel.app/api/tasks \\
   -H "Content-Type: application/json" \\
-  -d '{"status":"in_progress","progress":50,"logNote":"Started writing code","author":"Antigravity AI"}'
+  -d '{"title":"Refactor API","taskSet":"Sprint 1","status":"plan","assignee":"Antigravity AI"}'
 
-# Mark task as DONE
+# Update task status to In Progress
 curl -X PATCH https://plan-work-nu.vercel.app/api/tasks/task-101 \\
   -H "Content-Type: application/json" \\
-  -d '{"status":"done","progress":100,"logNote":"Task finished successfully"}'`;
+  -d '{"status":"in_progress","progress":50,"logNote":"Started writing code","author":"Antigravity AI"}'`;
 
   const aiPromptSnippet = `คำสั่งเพิ่มเติมสำหรับ AI Agent:
-เมื่อทำงานใดๆ ในโปรเจกต์นี้ ให้สั่งอัพเดทสถานะงานใน Task Tracker ผ่าน CLI command นี้เสมอ:
+เมื่อทำงานในโปรเจกต์นี้ ให้สั่งอัพเดทสถานะงานใน Task Tracker ผ่าน CLI command นี้เสมอ:
+- สร้างงาน: ./task-agent.sh create "<ชื่อ Task>" --set="Sprint 1" --status=plan
 - เริ่มทำ: ./task-agent.sh update <task-id> --status=in_progress --progress=30 --log="กำลังเริ่ม..."
 - ทำเสร็จ: ./task-agent.sh complete <task-id> --log="สร้างไฟล์เรียบร้อยแล้ว"`;
 
