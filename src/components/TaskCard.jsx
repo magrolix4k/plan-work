@@ -1,5 +1,5 @@
 import React from 'react';
-import { MessageSquare } from 'lucide-react';
+import { MessageSquare, Bot, User } from 'lucide-react';
 
 export default function TaskCard({ task, onClick, onDragStart }) {
   const isAIAssignee = task.assignee && (
@@ -50,11 +50,13 @@ export default function TaskCard({ task, onClick, onDragStart }) {
       <div className="task-footer">
         <div className="assignee-tag">
           {isAIAssignee ? (
-            <span className="ai-badge" title="Assigned to AI Agent">
-              🤖 {task.assignee}
+            <span className="ai-badge" title="Assigned to AI Agent" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+              <Bot size={12} /> {task.assignee}
             </span>
           ) : (
-            <span>👤 {task.assignee || 'Unassigned'}</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+              <User size={12} /> {task.assignee || 'Unassigned'}
+            </span>
           )}
         </div>
 

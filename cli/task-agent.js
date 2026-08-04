@@ -93,16 +93,10 @@ async function main() {
         if (flags.status) {
           tasks = tasks.filter(t => t.status.toLowerCase() === flags.status.toLowerCase());
         }
-        console.log(`\n📋 TASKS LIST (${tasks.length}):\n` + '-'.repeat(60));
+        console.log(`\n[TASKS LIST] (${tasks.length}):\n` + '-'.repeat(60));
         tasks.forEach(t => {
-          const statusIcon = {
-            backlog: '📥',
-            plan: '📋',
-            in_progress: '⚡',
-            in_review: '🔍',
-            done: '✅'
-          }[t.status] || '📌';
-          console.log(`${statusIcon} [${t.id}] (${t.status.toUpperCase()}) ${t.title}`);
+          const statusTag = `[${t.status.toUpperCase()}]`;
+          console.log(`${statusTag} [${t.id}] ${t.title}`);
           console.log(`   Assignee: ${t.assignee || 'Unassigned'} | Progress: ${t.progress}% | Priority: ${t.priority.toUpperCase()}`);
           if (t.tags && t.tags.length) console.log(`   Tags: ${t.tags.join(', ')}`);
           console.log('-'.repeat(60));
@@ -113,7 +107,7 @@ async function main() {
       case 'create': {
         const title = positional[0] || flags.title;
         if (!title) {
-          console.error('❌ Error: Task title is required.');
+          console.error('[ERROR] Task title is required.');
           process.exit(1);
         }
         const payload = {
@@ -127,14 +121,14 @@ async function main() {
           logNote: flags.log || flags.note || 'Task created via CLI'
         };
         const res = await request('POST', '/tasks', payload);
-        console.log(`✅ Created Task [${res.body.task.id}]: "${res.body.task.title}" (Status: ${res.body.task.status.toUpperCase()})`);
+        console.log(`[SUCCESS] Created Task [${res.body.task.id}]: "${res.body.task.title}" (Status: ${res.body.task.status.toUpperCase()})`);
         break;
       }
 
       case 'update': {
         const id = positional[0] || flags.id;
         if (!id) {
-          console.error('❌ Error: Task ID is required.');
+          console.error('[ERROR] Task ID is required.');
           process.exit(1);
         }
         const updates = {
@@ -151,9 +145,9 @@ async function main() {
 
         const res = await request('PATCH', `/tasks/${id}`, updates);
         if (res.status === 200) {
-          console.log(`✅ Updated Task [${id}]: Status = ${res.body.task.status.toUpperCase()} | Progress = ${res.body.task.progress}%`);
+          console.log(`[SUCCESS] Updated Task [${id}]: Status = ${res.body.task.status.toUpperCase()} | Progress = ${res.body.task.progress}%`);
         } else {
-          console.error(`❌ Update Failed:`, res.body);
+          console.error(`[ERROR] Update Failed:`, res.body);
         }
         break;
       }
@@ -161,7 +155,7 @@ async function main() {
       case 'complete': {
         const id = positional[0] || flags.id;
         if (!id) {
-          console.error('❌ Error: Task ID is required.');
+          console.error('[ERROR] Task ID is required.');
           process.exit(1);
         }
         const updates = {
@@ -172,9 +166,9 @@ async function main() {
         };
         const res = await request('PATCH', `/tasks/${id}`, updates);
         if (res.status === 200) {
-          console.log(`🎉 Task Completed [${id}]: "${res.body.task.title}" -> DONE (100%)`);
+          console.log(`[DONE] Task Completed [${id}]: "${res.body.task.title}" -> DONE (100%)`);
         } else {
-          console.error(`❌ Completion Failed:`, res.body);
+          console.error(`[ERROR] Completion Failed:`, res.body);
         }
         break;
       }
@@ -183,7 +177,7 @@ async function main() {
         const id = positional[0] || flags.id;
         const note = flags.note || flags.log || positional[1];
         if (!id || !note) {
-          console.error('❌ Error: Task ID and --note are required.');
+          console.error('[ERROR] Task ID and --note are required.');
           process.exit(1);
         }
         const res = await request('POST', `/tasks/${id}/logs`, {
@@ -191,9 +185,9 @@ async function main() {
           note
         });
         if (res.status === 200) {
-          console.log(`📝 Log added to Task [${id}]: "${note}"`);
+          console.log(`[LOG] Added to Task [${id}]: "${note}"`);
         } else {
-          console.error(`❌ Log Addition Failed:`, res.body);
+          console.error(`[ERROR] Log Addition Failed:`, res.body);
         }
         break;
       }
@@ -203,14 +197,14 @@ async function main() {
         printHelp();
     }
   } catch (err) {
-    console.error(`❌ ${err.message}`);
+    console.error(`[ERROR] ${err.message}`);
     process.exit(1);
   }
 }
 
 function printHelp() {
   console.log(`
-🤖 Task Agent CLI - Helper tool for AI Agents & Terminal Users
+Task Agent CLI - Helper tool for AI Agents & Terminal Users
 
 Commands:
   list    [--status=plan|in_progress|done]      List tasks

@@ -1,8 +1,19 @@
 import React, { useState } from 'react';
+import { Inbox, ClipboardList, Zap, Search, CheckCircle2 } from 'lucide-react';
 import TaskCard from './TaskCard';
+
+const ICON_MAP = {
+  Inbox: Inbox,
+  ClipboardList: ClipboardList,
+  Zap: Zap,
+  Search: Search,
+  CheckCircle2: CheckCircle2
+};
 
 export default function KanbanColumn({ column, tasks, onTaskClick, onDropTask }) {
   const [isDragOver, setIsDragOver] = useState(false);
+
+  const IconComponent = ICON_MAP[column.icon] || Inbox;
 
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -35,10 +46,7 @@ export default function KanbanColumn({ column, tasks, onTaskClick, onDropTask })
     >
       <div className="column-header">
         <div className="column-title-group">
-          <div
-            className="column-color-indicator"
-            style={{ backgroundColor: column.color }}
-          />
+          <IconComponent size={16} color={column.color} />
           <span className="column-title">{column.title}</span>
         </div>
         <span className="column-count">{tasks.length}</span>

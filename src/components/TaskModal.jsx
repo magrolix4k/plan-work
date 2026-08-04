@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Trash2, Send, Clock } from 'lucide-react';
+import { X, Trash2, Send, Clock, Bot, User } from 'lucide-react';
 
 export default function TaskModal({ task, isOpen, onClose, onSave, onDelete, onAddLog }) {
   if (!isOpen || !task) return null;
@@ -93,11 +93,11 @@ export default function TaskModal({ task, isOpen, onClose, onSave, onDelete, onA
               <div className="form-group">
                 <label className="form-label">Status Column</label>
                 <select name="status" className="form-select" value={formData.status} onChange={handleChange}>
-                  <option value="backlog">📥 Backlog</option>
-                  <option value="plan">📋 Plan</option>
-                  <option value="in_progress">⚡ In Progress</option>
-                  <option value="in_review">🔍 In Review</option>
-                  <option value="done">✅ Done</option>
+                  <option value="backlog">Backlog</option>
+                  <option value="plan">Plan</option>
+                  <option value="in_progress">In Progress</option>
+                  <option value="in_review">In Review</option>
+                  <option value="done">Done</option>
                 </select>
               </div>
 
@@ -107,7 +107,7 @@ export default function TaskModal({ task, isOpen, onClose, onSave, onDelete, onA
                   <option value="low">Low</option>
                   <option value="medium">Medium</option>
                   <option value="high">High</option>
-                  <option value="urgent">🔥 Urgent</option>
+                  <option value="urgent">Urgent</option>
                 </select>
               </div>
             </div>
@@ -170,7 +170,6 @@ export default function TaskModal({ task, isOpen, onClose, onSave, onDelete, onA
             </div>
           </form>
 
-          {/* AI Agent Activity Timeline Feed */}
           {task.id && !task.id.startsWith('new') && (
             <div className="timeline-section">
               <div className="timeline-title">
@@ -178,17 +177,16 @@ export default function TaskModal({ task, isOpen, onClose, onSave, onDelete, onA
                 <span>AI Agent Execution & Activity Timeline</span>
               </div>
 
-              {/* Add Note Input */}
               <form onSubmit={handleAddLogSubmit} style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
                 <select
                   value={logAuthor}
                   onChange={(e) => setLogAuthor(e.target.value)}
                   className="form-select"
-                  style={{ width: '130px', fontSize: '0.8rem' }}
+                  style={{ width: '150px', fontSize: '0.8rem' }}
                 >
-                  <option value="User">👤 User</option>
-                  <option value="Antigravity AI">🤖 Antigravity AI</option>
-                  <option value="Claude Agent">🤖 Claude Agent</option>
+                  <option value="User">User</option>
+                  <option value="Antigravity AI">Antigravity AI</option>
+                  <option value="Claude Agent">Claude Agent</option>
                 </select>
                 <input
                   type="text"
@@ -208,12 +206,12 @@ export default function TaskModal({ task, isOpen, onClose, onSave, onDelete, onA
                   task.logs.map((log, idx) => (
                     <div key={log.id || idx} className="timeline-item">
                       <div className="timeline-item-header">
-                        <span className="timeline-author">
-                          {log.author && log.author.toLowerCase().includes('ai') ? '🤖 ' : '👤 '}
+                        <span className="timeline-author" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                          {log.author && log.author.toLowerCase().includes('ai') ? <Bot size={13} /> : <User size={13} />}
                           {log.author || 'AI Agent'}
                         </span>
                         <span className="timeline-time">
-                          {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                          {new Date(log.timestamp || log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                         </span>
                       </div>
                       <div className="timeline-note">{log.note}</div>

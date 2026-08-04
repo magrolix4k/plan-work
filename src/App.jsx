@@ -8,11 +8,11 @@ import AgentGuideModal from './components/AgentGuideModal';
 const API_BASE = '/api';
 
 const COLUMNS = [
-  { id: 'backlog', title: '📥 Backlog', color: '#64748b' },
-  { id: 'plan', title: '📋 Plan', color: '#a855f7' },
-  { id: 'in_progress', title: '⚡ In Progress', color: '#f59e0b' },
-  { id: 'in_review', title: '🔍 In Review', color: '#06b6d4' },
-  { id: 'done', title: '✅ Done', color: '#10b981' }
+  { id: 'backlog', title: 'Backlog', icon: 'Inbox', color: '#64748b' },
+  { id: 'plan', title: 'Plan', icon: 'ClipboardList', color: '#a855f7' },
+  { id: 'in_progress', title: 'In Progress', icon: 'Zap', color: '#f59e0b' },
+  { id: 'in_review', title: 'In Review', icon: 'Search', color: '#06b6d4' },
+  { id: 'done', title: 'Done', icon: 'CheckCircle2', color: '#10b981' }
 ];
 
 export default function App() {

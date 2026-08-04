@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Copy, Check, Bot } from 'lucide-react';
+import { X, Copy, Check, Bot, MessageSquare, Terminal, Globe } from 'lucide-react';
 
 export default function AgentGuideModal({ isOpen, onClose }) {
   if (!isOpen) return null;
@@ -50,11 +50,10 @@ curl -X PATCH http://localhost:3001/api/tasks/task-101 \\
             ใช้คำสั่งด้านล่างนี้เพื่อให้ **AI Agent (เช่น Antigravity, Cursor, Claude CLI)** หรือ Script อัพเดทสถานะงานเข้าสู่ Web UI แบบ Real-time ได้ทันที:
           </p>
 
-          {/* Section 1: Prompt Snippet */}
           <div className="guide-drawer">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-              <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--accent-purple)' }}>
-                💬 Prompt Template (คัดลอกไปแปะตอนสั่งงาน AI)
+              <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--accent-purple)', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                <MessageSquare size={16} /> Prompt Template (คัดลอกไปแปะตอนสั่งงาน AI)
               </span>
               <button
                 className="btn btn-secondary"
@@ -68,11 +67,10 @@ curl -X PATCH http://localhost:3001/api/tasks/task-101 \\
             <pre className="code-block" style={{ color: '#e2e8f0' }}>{aiPromptSnippet}</pre>
           </div>
 
-          {/* Section 2: CLI Commands */}
           <div className="guide-drawer">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-              <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--accent-cyan)' }}>
-                💻 Task CLI Tool Commands (`./task-agent.sh`)
+              <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--accent-cyan)', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                <Terminal size={16} /> Task CLI Tool Commands (`./task-agent.sh`)
               </span>
               <button
                 className="btn btn-secondary"
@@ -86,11 +84,10 @@ curl -X PATCH http://localhost:3001/api/tasks/task-101 \\
             <pre className="code-block">{cliExample}</pre>
           </div>
 
-          {/* Section 3: REST API */}
           <div className="guide-drawer">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-              <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--accent-amber)' }}>
-                🌐 REST API & cURL Integration
+              <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--accent-amber)', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                <Globe size={16} /> REST API & cURL Integration
               </span>
               <button
                 className="btn btn-secondary"
