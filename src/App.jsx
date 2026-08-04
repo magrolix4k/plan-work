@@ -45,14 +45,17 @@ export default function App() {
     fetchTasks();
   }, []);
 
+  const [customTaskSets, setCustomTaskSets] = useState([]);
+
   // Compute unique Task Sets
   const rawSets = tasks.map(t => t.taskSet || t.task_set || 'Default');
-  const taskSets = Array.from(new Set(['Default', ...rawSets]));
+  const taskSets = Array.from(new Set(['Default', ...customTaskSets, ...rawSets, ...(selectedTaskSet !== 'ALL' ? [selectedTaskSet] : [])]));
 
   const handleCreateTaskSet = () => {
     const setName = prompt('Enter a name for the new Task Set / Batch (e.g., "Sprint 1", "Auth Feature"):');
     if (setName && setName.trim()) {
       const cleaned = setName.trim();
+      setCustomTaskSets(prev => Array.from(new Set([...prev, cleaned])));
       setSelectedTaskSet(cleaned);
     }
   };
