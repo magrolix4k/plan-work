@@ -1,36 +1,50 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { createClient } from '@supabase/supabase-js';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Supabase Environment Setup
+const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+
+let supabase = null;
+if (supabaseUrl && supabaseKey) {
+  try {
+    supabase = createClient(supabaseUrl, supabaseKey);
+    console.log('⚡ Connected to Supabase PostgreSQL Database');
+  } catch (err) {
+    console.error('Failed to initialize Supabase client:', err);
+  }
+}
+
+// Local Fallback Storage Setup
 const DATA_DIR = process.env.VERCEL ? '/tmp' : path.join(__dirname, '../data');
 const TASKS_FILE = path.join(DATA_DIR, 'tasks.json');
 
-// Ensure data directory exists
 if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 
-// Initial seed data if file doesn't exist
-const INITIAL_TASKS = [];
-
-function readTasks() {
+function readLocalTasks() {
   try {
     if (!fs.existsSync(TASKS_FILE)) {
-      writeTasks(INITIAL_TASKS);
-      return INITIAL_TASKS;
+      writeLocalTasks([]);
+      return [];
     }
     const data = fs.readFileSync(TASKS_FILE, 'utf8');
     return JSON.parse(data);
   } catch (error) {
-    console.error('Error reading tasks file:', error);
-    return INITIAL_TASKS;
+    return [];
   }
 }
 
-function writeTasks(tasks) {
+function writeLocalTasks(tasks) {
   try {
     fs.writeFileSync(TASKS_FILE, JSON.stringify(tasks, null, 2), 'utf8');
   } catch (error) {
@@ -38,19 +52,101 @@ function writeTasks(tasks) {
   }
 }
 
-export function getAllTasks() {
-  return readTasks();
+// Data Abstraction Layer (Supabase or Local Storage)
+
+export async function getAllTasks() {
+  if (supabase) {
+    try {
+      const { data: tasks, error } = await supabase
+        .from('tasks')
+        .select('*, task_logs(*)')
+        .order('created_at', { ascending: false });
+
+      if (!error && tasks) {
+        return tasks.map(t => ({
+          ...t,
+          logs: (t.task_logs || []).sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+        }));
+      }
+    } catch (err) {
+      console.error('Supabase query error, falling back to local storage:', err);
+    }
+  }
+  return readLocalTasks();
 }
 
-export function getTaskById(id) {
-  const tasks = readTasks();
+export async function getTaskById(id) {
+  if (supabase) {
+    try {
+      const { data: task, error } = await supabase
+        .from('tasks')
+        .select('*, task_logs(*)')
+        .eq('id', id)
+        .single();
+
+      if (!error && task) {
+        return {
+          ...task,
+          logs: (task.task_logs || []).sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+        };
+      }
+    } catch (err) {
+      console.error('Supabase error:', err);
+    }
+  }
+  const tasks = readLocalTasks();
   return tasks.find(t => t.id === id);
 }
 
-export function createTask(taskData) {
-  const tasks = readTasks();
+export async function createTask(taskData) {
+  const taskId = `task-${Date.now()}`;
+  const now = new Date().toISOString();
+
+  if (supabase) {
+    try {
+      const { data: newTask, error } = await supabase
+        .from('tasks')
+        .insert({
+          id: taskId,
+          title: taskData.title || 'Untitled Task',
+          description: taskData.description || '',
+          status: taskData.status || 'plan',
+          priority: taskData.priority || 'medium',
+          assignee: taskData.assignee || 'Antigravity AI',
+          progress: Number(taskData.progress) || 0,
+          tags: Array.isArray(taskData.tags) ? taskData.tags : (taskData.tags ? taskData.tags.split(',').map(t => t.trim()) : [])
+        })
+        .select()
+        .single();
+
+      if (!error && newTask) {
+        // Insert initial log
+        const logNote = taskData.logNote || 'Task created.';
+        const { data: log } = await supabase
+          .from('task_logs')
+          .insert({
+            task_id: taskId,
+            author: taskData.assignee || 'AI Agent',
+            action: 'CREATED',
+            note: logNote
+          })
+          .select()
+          .single();
+
+        return {
+          ...newTask,
+          logs: log ? [log] : []
+        };
+      }
+    } catch (err) {
+      console.error('Supabase insert error, falling back to local:', err);
+    }
+  }
+
+  // Local fallback
+  const tasks = readLocalTasks();
   const newTask = {
-    id: `task-${Date.now()}`,
+    id: taskId,
     title: taskData.title || 'Untitled Task',
     description: taskData.description || '',
     status: taskData.status || 'plan',
@@ -61,32 +157,84 @@ export function createTask(taskData) {
     logs: [
       {
         id: `log-${Date.now()}`,
-        timestamp: new Date().toISOString(),
+        timestamp: now,
         author: taskData.assignee || 'AI Agent',
         action: 'CREATED',
         note: taskData.logNote || 'Task created.'
       }
     ],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    createdAt: now,
+    updatedAt: now
   };
 
   tasks.unshift(newTask);
-  writeTasks(tasks);
+  writeLocalTasks(tasks);
   return newTask;
 }
 
-export function updateTask(id, updates) {
-  const tasks = readTasks();
+export async function updateTask(id, updates) {
+  const timestamp = new Date().toISOString();
+  const author = updates.author || updates.assignee || 'AI Agent';
+
+  if (supabase) {
+    try {
+      // Get current task for status comparison
+      const { data: current } = await supabase.from('tasks').select('status').eq('id', id).single();
+      const oldStatus = current ? current.status : null;
+
+      const payload = {
+        updated_at: timestamp
+      };
+      if (updates.title !== undefined) payload.title = updates.title;
+      if (updates.description !== undefined) payload.description = updates.description;
+      if (updates.status !== undefined) payload.status = updates.status;
+      if (updates.priority !== undefined) payload.priority = updates.priority;
+      if (updates.assignee !== undefined) payload.assignee = updates.assignee;
+      if (updates.progress !== undefined) payload.progress = Number(updates.progress);
+      if (updates.tags !== undefined) {
+        payload.tags = Array.isArray(updates.tags) ? updates.tags : updates.tags.split(',').map(t => t.trim());
+      }
+
+      const { data: updated, error } = await supabase
+        .from('tasks')
+        .update(payload)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (!error && updated) {
+        let note = updates.logNote;
+        let action = 'LOG';
+
+        if (updates.status && oldStatus && updates.status !== oldStatus) {
+          action = 'STATUS_CHANGE';
+          note = `Moved status from ${oldStatus.toUpperCase()} to ${updates.status.toUpperCase()}.${updates.logNote ? ' Note: ' + updates.logNote : ''}`;
+        }
+
+        if (note) {
+          await supabase.from('task_logs').insert({
+            task_id: id,
+            author,
+            action,
+            note
+          });
+        }
+
+        return getTaskById(id);
+      }
+    } catch (err) {
+      console.error('Supabase update error:', err);
+    }
+  }
+
+  // Local fallback
+  const tasks = readLocalTasks();
   const index = tasks.findIndex(t => t.id === id);
   if (index === -1) return null;
 
   const currentTask = tasks[index];
   const oldStatus = currentTask.status;
-  
   const newLogs = [...(currentTask.logs || [])];
-  const timestamp = new Date().toISOString();
-  const author = updates.author || updates.assignee || 'AI Agent';
 
   if (updates.status && updates.status !== oldStatus) {
     newLogs.unshift({
@@ -122,32 +270,45 @@ export function updateTask(id, updates) {
   };
 
   tasks[index] = updatedTask;
-  writeTasks(tasks);
+  writeLocalTasks(tasks);
   return updatedTask;
 }
 
-export function addLogToTask(id, logData) {
-  const tasks = readTasks();
-  const task = tasks.find(t => t.id === id);
-  if (!task) return null;
-
+export async function addLogToTask(id, logData) {
   return updateTask(id, {
     author: logData.author || 'AI Agent',
     logNote: logData.note || logData.logNote || 'Activity logged.'
   });
 }
 
-export function deleteTask(id) {
-  let tasks = readTasks();
+export async function deleteTask(id) {
+  if (supabase) {
+    try {
+      const { error } = await supabase.from('tasks').delete().eq('id', id);
+      if (!error) return true;
+    } catch (err) {
+      console.error('Supabase delete error:', err);
+    }
+  }
+
+  let tasks = readLocalTasks();
   const exists = tasks.some(t => t.id === id);
   if (!exists) return false;
 
   tasks = tasks.filter(t => t.id !== id);
-  writeTasks(tasks);
+  writeLocalTasks(tasks);
   return true;
 }
 
-export function resetSeed() {
-  writeTasks(INITIAL_TASKS);
-  return INITIAL_TASKS;
+export async function resetSeed() {
+  if (supabase) {
+    try {
+      await supabase.from('tasks').delete().neq('id', 'keep-all');
+      return [];
+    } catch (err) {
+      console.error('Supabase reset error:', err);
+    }
+  }
+  writeLocalTasks([]);
+  return [];
 }
