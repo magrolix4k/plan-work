@@ -97,10 +97,15 @@ async function main() {
         if (flags.status) {
           tasks = tasks.filter(t => t.status.toLowerCase() === flags.status.toLowerCase());
         }
+        if (flags.set || flags.taskSet) {
+          const targetSet = (flags.set || flags.taskSet).toLowerCase();
+          tasks = tasks.filter(t => (t.task_set || t.taskSet || 'Default').toLowerCase() === targetSet);
+        }
         console.log(`\n[TASKS LIST] (${tasks.length}):\n` + '-'.repeat(60));
         tasks.forEach(t => {
           const statusTag = `[${t.status.toUpperCase()}]`;
-          console.log(`${statusTag} [${t.id}] ${t.title}`);
+          const setTag = t.task_set && t.task_set !== 'Default' ? ` [SET: ${t.task_set}]` : '';
+          console.log(`${statusTag}${setTag} [${t.id}] ${t.title}`);
           console.log(`   Assignee: ${t.assignee || 'Unassigned'} | Progress: ${t.progress}% | Priority: ${t.priority.toUpperCase()}`);
           if (t.tags && t.tags.length) console.log(`   Tags: ${t.tags.join(', ')}`);
           console.log('-'.repeat(60));
@@ -120,12 +125,13 @@ async function main() {
           status: flags.status || 'plan',
           priority: flags.priority || 'medium',
           assignee: flags.assignee || 'Antigravity AI',
+          taskSet: flags.set || flags.taskSet || flags.task_set || 'Default',
           tags: flags.tags || '',
           progress: flags.progress ? parseInt(flags.progress) : 0,
           logNote: flags.log || flags.note || 'Task created via CLI'
         };
         const res = await request('POST', '/tasks', payload);
-        console.log(`[SUCCESS] Created Task [${res.body.task.id}]: "${res.body.task.title}" (Status: ${res.body.task.status.toUpperCase()})`);
+        console.log(`[SUCCESS] Created Task [${res.body.task.id}]: "${res.body.task.title}" (Set: ${res.body.task.task_set || res.body.task.taskSet || 'Default'} | Status: ${res.body.task.status.toUpperCase()})`);
         break;
       }
 

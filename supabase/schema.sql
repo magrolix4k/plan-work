@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS public.tasks (
     status TEXT DEFAULT 'plan' CHECK (status IN ('backlog', 'plan', 'in_progress', 'in_review', 'done')),
     priority TEXT DEFAULT 'medium' CHECK (priority IN ('low', 'medium', 'high', 'urgent')),
     assignee TEXT DEFAULT 'Antigravity AI',
+    task_set TEXT DEFAULT 'Default',
     progress INTEGER DEFAULT 0 CHECK (progress >= 0 AND progress <= 100),
     tags TEXT[] DEFAULT '{}',
     created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -26,6 +27,7 @@ CREATE TABLE IF NOT EXISTS public.task_logs (
 
 -- 3. Create Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_tasks_status ON public.tasks(status);
+CREATE INDEX IF NOT EXISTS idx_tasks_task_set ON public.tasks(task_set);
 CREATE INDEX IF NOT EXISTS idx_task_logs_task_id ON public.task_logs(task_id);
 
 -- 4. Enable Row Level Security (RLS) & Add Permissive Access Policies

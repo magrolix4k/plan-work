@@ -67,6 +67,8 @@ export async function getAllTasks() {
       if (!error && tasks) {
         return tasks.map(t => ({
           ...t,
+          taskSet: t.task_set || 'Default',
+          task_set: t.task_set || 'Default',
           logs: (t.task_logs || []).sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
         }));
       }
@@ -89,6 +91,8 @@ export async function getTaskById(id) {
       if (!error && task) {
         return {
           ...task,
+          taskSet: task.task_set || 'Default',
+          task_set: task.task_set || 'Default',
           logs: (task.task_logs || []).sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
         };
       }
@@ -103,6 +107,7 @@ export async function getTaskById(id) {
 export async function createTask(taskData) {
   const taskId = `task-${Date.now()}`;
   const now = new Date().toISOString();
+  const taskSet = taskData.taskSet || taskData.task_set || 'Default';
 
   if (supabase) {
     try {
@@ -115,6 +120,7 @@ export async function createTask(taskData) {
           status: taskData.status || 'plan',
           priority: taskData.priority || 'medium',
           assignee: taskData.assignee || 'Antigravity AI',
+          task_set: taskSet,
           progress: Number(taskData.progress) || 0,
           tags: Array.isArray(taskData.tags) ? taskData.tags : (taskData.tags ? taskData.tags.split(',').map(t => t.trim()) : [])
         })
@@ -122,7 +128,6 @@ export async function createTask(taskData) {
         .single();
 
       if (!error && newTask) {
-        // Insert initial log
         const logNote = taskData.logNote || 'Task created.';
         const { data: log } = await supabase
           .from('task_logs')
@@ -137,6 +142,8 @@ export async function createTask(taskData) {
 
         return {
           ...newTask,
+          taskSet,
+          task_set: taskSet,
           logs: log ? [log] : []
         };
       }
@@ -153,8 +160,10 @@ export async function createTask(taskData) {
     description: taskData.description || '',
     status: taskData.status || 'plan',
     priority: taskData.priority || 'medium',
-    tags: Array.isArray(taskData.tags) ? taskData.tags : (taskData.tags ? taskData.tags.split(',').map(t => t.trim()) : []),
     assignee: taskData.assignee || 'Antigravity AI',
+    taskSet,
+    task_set: taskSet,
+    tags: Array.isArray(taskData.tags) ? taskData.tags : (taskData.tags ? taskData.tags.split(',').map(t => t.trim()) : []),
     progress: Number(taskData.progress) || 0,
     logs: [
       {
@@ -180,7 +189,6 @@ export async function updateTask(id, updates) {
 
   if (supabase) {
     try {
-      // Get current task for status comparison
       const { data: current } = await supabase.from('tasks').select('status').eq('id', id).single();
       const oldStatus = current ? current.status : null;
 
@@ -192,6 +200,9 @@ export async function updateTask(id, updates) {
       if (updates.status !== undefined) payload.status = updates.status;
       if (updates.priority !== undefined) payload.priority = updates.priority;
       if (updates.assignee !== undefined) payload.assignee = updates.assignee;
+      if (updates.taskSet !== undefined || updates.task_set !== undefined) {
+        payload.task_set = updates.taskSet || updates.task_set;
+      }
       if (updates.progress !== undefined) payload.progress = Number(updates.progress);
       if (updates.tags !== undefined) {
         payload.tags = Array.isArray(updates.tags) ? updates.tags : updates.tags.split(',').map(t => t.trim());
@@ -263,6 +274,10 @@ export async function updateTask(id, updates) {
     ...(updates.status !== undefined && { status: updates.status }),
     ...(updates.priority !== undefined && { priority: updates.priority }),
     ...(updates.assignee !== undefined && { assignee: updates.assignee }),
+    ...((updates.taskSet !== undefined || updates.task_set !== undefined) && { 
+      taskSet: updates.taskSet || updates.task_set,
+      task_set: updates.taskSet || updates.task_set
+    }),
     ...(updates.progress !== undefined && { progress: Number(updates.progress) }),
     ...(updates.tags !== undefined && { 
       tags: Array.isArray(updates.tags) ? updates.tags : updates.tags.split(',').map(t => t.trim()) 

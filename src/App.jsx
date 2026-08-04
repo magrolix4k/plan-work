@@ -18,13 +18,16 @@ const COLUMNS = [
 export default function App() {
   const [tasks, setTasks] = useState([]);
   const [search, setSearch] = useState('');
+  const [selectedTaskSet, setSelectedTaskSet] = useState('ALL');
+  const [dateFilter, setDateFilter] = useState('');
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isGuideOpen, setIsGuideOpen] = useState(false);
-  const [isConnected, setIsConnected] = useState(false);
 
   // Fetch initial tasks
   const fetchTasks = async () => {
+    setIsRefreshing(true);
     try {
       const res = await fetch(`${API_BASE}/tasks`);
       const data = await res.json();
@@ -33,55 +36,32 @@ export default function App() {
       }
     } catch (err) {
       console.error('Failed to fetch tasks:', err);
+    } finally {
+      setTimeout(() => setIsRefreshing(false), 500);
     }
   };
 
   useEffect(() => {
     fetchTasks();
-
-    // Subscribe to SSE Real-time Updates
-    const eventSource = new EventSource(`${API_BASE}/events`);
-
-    eventSource.onopen = () => {
-      setIsConnected(true);
-    };
-
-    eventSource.onmessage = (event) => {
-      try {
-        const payload = JSON.parse(event.data);
-        if (payload.type === 'CONNECTED') {
-          setIsConnected(true);
-        } else if (payload.type === 'TASK_CREATED') {
-          setTasks(prev => [payload.data, ...prev.filter(t => t.id !== payload.data.id)]);
-        } else if (payload.type === 'TASK_UPDATED' || payload.type === 'TASK_LOG_ADDED') {
-          setTasks(prev => prev.map(t => t.id === payload.data.id ? payload.data : t));
-          setSelectedTask(current => (current && current.id === payload.data.id ? payload.data : current));
-        } else if (payload.type === 'TASK_DELETED') {
-          setTasks(prev => prev.filter(t => t.id !== payload.data.id));
-          setSelectedTask(current => (current && current.id === payload.data.id ? null : current));
-        } else if (payload.type === 'TASKS_RESET') {
-          setTasks(payload.data);
-        }
-      } catch (e) {
-        console.error('Error parsing SSE event:', e);
-      }
-    };
-
-    eventSource.onerror = () => {
-      setIsConnected(false);
-    };
-
-    return () => {
-      eventSource.close();
-    };
   }, []);
+
+  // Compute unique Task Sets
+  const rawSets = tasks.map(t => t.taskSet || t.task_set || 'Default');
+  const taskSets = Array.from(new Set(['Default', ...rawSets]));
+
+  const handleCreateTaskSet = () => {
+    const setName = prompt('Enter a name for the new Task Set / Batch (e.g., "Sprint 1", "Auth Feature"):');
+    if (setName && setName.trim()) {
+      const cleaned = setName.trim();
+      setSelectedTaskSet(cleaned);
+    }
+  };
 
   // Drag and Drop Column Handler
   const handleDropTask = async (taskId, newStatus) => {
     const task = tasks.find(t => t.id === taskId);
     if (!task || task.status === newStatus) return;
 
-    // Optimistic UI update
     const previousTasks = [...tasks];
     setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: newStatus } : t));
 
@@ -106,6 +86,7 @@ export default function App() {
   };
 
   const handleOpenNewTask = () => {
+    const currentSet = selectedTaskSet === 'ALL' ? 'Default' : selectedTaskSet;
     setSelectedTask({
       id: `new-${Date.now()}`,
       title: '',
@@ -113,6 +94,7 @@ export default function App() {
       status: 'plan',
       priority: 'medium',
       assignee: 'Antigravity AI',
+      taskSet: currentSet,
       progress: 0,
       tags: [],
       logs: []
@@ -142,6 +124,7 @@ export default function App() {
         });
         await res.json();
       }
+      fetchTasks();
       setIsModalOpen(false);
     } catch (err) {
       console.error('Failed to save task:', err);
@@ -151,6 +134,7 @@ export default function App() {
   const handleDeleteTask = async (id) => {
     try {
       await fetch(`${API_BASE}/tasks/${id}`, { method: 'DELETE' });
+      fetchTasks();
       setIsModalOpen(false);
     } catch (err) {
       console.error('Failed to delete task:', err);
@@ -164,23 +148,29 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(logData)
       });
+      fetchTasks();
     } catch (err) {
       console.error('Failed to add log:', err);
     }
   };
 
-  const handleResetSeed = async () => {
-    if (window.confirm('Reset sample task workspace?')) {
-      try {
-        await fetch(`${API_BASE}/tasks/reset`, { method: 'POST' });
-      } catch (err) {
-        console.error('Failed to reset tasks:', err);
+  // Filter tasks based on Search, Task Set, and Date
+  const filteredTasks = tasks.filter(t => {
+    // 1. Task Set filter
+    const taskSet = t.taskSet || t.task_set || 'Default';
+    if (selectedTaskSet !== 'ALL' && taskSet.toLowerCase() !== selectedTaskSet.toLowerCase()) {
+      return false;
+    }
+
+    // 2. Date filter (YYYY-MM-DD)
+    if (dateFilter) {
+      const createdAt = t.created_at || t.createdAt || '';
+      if (!createdAt.startsWith(dateFilter)) {
+        return false;
       }
     }
-  };
 
-  // Filter tasks based on search
-  const filteredTasks = tasks.filter(t => {
+    // 3. Search query filter
     const q = search.toLowerCase();
     if (!q) return true;
     return (
@@ -188,7 +178,8 @@ export default function App() {
       (t.description && t.description.toLowerCase().includes(q)) ||
       (t.assignee && t.assignee.toLowerCase().includes(q)) ||
       (t.tags && t.tags.some(tag => tag.toLowerCase().includes(q))) ||
-      t.id.toLowerCase().includes(q)
+      t.id.toLowerCase().includes(q) ||
+      taskSet.toLowerCase().includes(q)
     );
   });
 
@@ -197,10 +188,16 @@ export default function App() {
       <Navbar
         search={search}
         setSearch={setSearch}
+        selectedTaskSet={selectedTaskSet}
+        setSelectedTaskSet={setSelectedTaskSet}
+        taskSets={taskSets}
+        onCreateTaskSet={handleCreateTaskSet}
+        dateFilter={dateFilter}
+        setDateFilter={setDateFilter}
         onOpenNewTask={handleOpenNewTask}
         onOpenGuide={() => setIsGuideOpen(true)}
-        isConnected={isConnected}
-        onResetSeed={handleResetSeed}
+        onRefresh={fetchTasks}
+        isRefreshing={isRefreshing}
       />
 
       <StatsOverview tasks={filteredTasks} />

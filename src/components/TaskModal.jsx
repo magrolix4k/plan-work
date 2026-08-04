@@ -10,6 +10,7 @@ export default function TaskModal({ task, isOpen, onClose, onSave, onDelete, onA
     status: task.status || 'plan',
     priority: task.priority || 'medium',
     assignee: task.assignee || 'Antigravity AI',
+    taskSet: task.taskSet || task.task_set || 'Default',
     progress: task.progress || 0,
     tags: Array.isArray(task.tags) ? task.tags.join(', ') : (task.tags || '')
   });
@@ -25,6 +26,7 @@ export default function TaskModal({ task, isOpen, onClose, onSave, onDelete, onA
         status: task.status || 'plan',
         priority: task.priority || 'medium',
         assignee: task.assignee || 'Antigravity AI',
+        taskSet: task.taskSet || task.task_set || 'Default',
         progress: task.progress || 0,
         tags: Array.isArray(task.tags) ? task.tags.join(', ') : (task.tags || '')
       });
@@ -140,16 +142,30 @@ export default function TaskModal({ task, isOpen, onClose, onSave, onDelete, onA
               </div>
             </div>
 
-            <div className="form-group">
-              <label className="form-label">Tags (comma separated)</label>
-              <input
-                type="text"
-                name="tags"
-                className="form-input"
-                value={formData.tags}
-                onChange={handleChange}
-                placeholder="backend, api, security, frontend"
-              />
+            <div className="form-row">
+              <div className="form-group">
+                <label className="form-label">Task Set / Batch</label>
+                <input
+                  type="text"
+                  name="taskSet"
+                  className="form-input"
+                  value={formData.taskSet}
+                  onChange={handleChange}
+                  placeholder="e.g. Default, Sprint 1, Feature-Auth"
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Tags (comma separated)</label>
+                <input
+                  type="text"
+                  name="tags"
+                  className="form-input"
+                  value={formData.tags}
+                  onChange={handleChange}
+                  placeholder="backend, api, security, frontend"
+                />
+              </div>
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem' }}>
