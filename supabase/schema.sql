@@ -1,6 +1,13 @@
 -- Supabase SQL Schema for AI Agent Task Workspace
 
--- 1. Create Tasks Table
+-- 1. Create Task Sets Table
+CREATE TABLE IF NOT EXISTS public.task_sets (
+    id TEXT PRIMARY KEY DEFAULT ('set-' || extract(epoch from now())::bigint),
+    name TEXT UNIQUE NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 2. Create Tasks Table
 CREATE TABLE IF NOT EXISTS public.tasks (
     id TEXT PRIMARY KEY,
     title TEXT NOT NULL,
@@ -15,7 +22,7 @@ CREATE TABLE IF NOT EXISTS public.tasks (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 2. Create Task Logs Table
+-- 3. Create Task Logs Table
 CREATE TABLE IF NOT EXISTS public.task_logs (
     id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
     task_id TEXT NOT NULL REFERENCES public.tasks(id) ON DELETE CASCADE,
@@ -25,14 +32,18 @@ CREATE TABLE IF NOT EXISTS public.task_logs (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 3. Create Indexes for performance
+-- 4. Create Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_tasks_status ON public.tasks(status);
 CREATE INDEX IF NOT EXISTS idx_tasks_task_set ON public.tasks(task_set);
 CREATE INDEX IF NOT EXISTS idx_task_logs_task_id ON public.task_logs(task_id);
 
--- 4. Enable Row Level Security (RLS) & Add Permissive Access Policies
+-- 5. Enable Row Level Security (RLS) & Add Permissive Access Policies
+ALTER TABLE public.task_sets ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.tasks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.task_logs ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Enable all access for task_sets" ON public.task_sets
+    FOR ALL USING (true) WITH CHECK (true);
 
 CREATE POLICY "Enable all access for tasks" ON public.tasks
     FOR ALL USING (true) WITH CHECK (true);
@@ -40,6 +51,7 @@ CREATE POLICY "Enable all access for tasks" ON public.tasks
 CREATE POLICY "Enable all access for task_logs" ON public.task_logs
     FOR ALL USING (true) WITH CHECK (true);
 
--- 5. Enable Realtime Publications
+-- 6. Enable Realtime Publications
+ALTER PUBLICATION supabase_realtime ADD TABLE public.task_sets;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.tasks;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.task_logs;

@@ -10,6 +10,30 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// GET all task sets
+app.get('/api/task-sets', async (req, res) => {
+  try {
+    const taskSets = await db.getAllTaskSets();
+    res.json({ success: true, taskSets });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST create task set
+app.post('/api/task-sets', async (req, res) => {
+  try {
+    const setName = req.body.name || req.body.setName;
+    if (!setName) {
+      return res.status(400).json({ success: false, error: 'Task Set name is required' });
+    }
+    const created = await db.createTaskSet(setName);
+    res.status(201).json({ success: true, taskSet: created });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
 // GET all tasks
 app.get('/api/tasks', async (req, res) => {
   try {

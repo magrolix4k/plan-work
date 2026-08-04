@@ -34,9 +34,10 @@ export default function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isGuideOpen, setIsGuideOpen] = useState(false);
   const [isNewTaskSetModalOpen, setIsNewTaskSetModalOpen] = useState(false);
+  const [dbTaskSets, setDbTaskSets] = useState([]);
   const [customTaskSets, setCustomTaskSets] = useState([]);
 
-  // Fetch initial tasks
+  // Fetch initial tasks and task sets
   const fetchTasks = async () => {
     setIsRefreshing(true);
     try {
@@ -52,19 +53,42 @@ export default function App() {
     }
   };
 
+  const fetchTaskSets = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/task-sets`);
+      const data = await res.json();
+      if (data.success && Array.isArray(data.taskSets)) {
+        setDbTaskSets(data.taskSets);
+      }
+    } catch (err) {
+      console.error('Failed to fetch task sets:', err);
+    }
+  };
+
   useEffect(() => {
     fetchTasks();
+    fetchTaskSets();
   }, []);
 
   // Compute unique Task Sets
   const rawSets = tasks.map(t => t.taskSet || t.task_set || 'Default');
-  const taskSets = Array.from(new Set(['Default', ...customTaskSets, ...rawSets, ...(selectedTaskSet !== 'ALL' ? [selectedTaskSet] : [])]));
+  const taskSets = Array.from(new Set(['Default', ...dbTaskSets, ...customTaskSets, ...rawSets, ...(selectedTaskSet !== 'ALL' ? [selectedTaskSet] : [])]));
 
-  const handleCreateTaskSet = (setName) => {
+  const handleCreateTaskSet = async (setName) => {
     if (setName && setName.trim()) {
       const cleaned = setName.trim();
       setCustomTaskSets(prev => Array.from(new Set([...prev, cleaned])));
       setSelectedTaskSet(cleaned);
+      try {
+        await fetch(`${API_BASE}/task-sets`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: cleaned })
+        });
+        fetchTaskSets();
+      } catch (err) {
+        console.error('Failed to save task set to DB:', err);
+      }
     }
   };
 

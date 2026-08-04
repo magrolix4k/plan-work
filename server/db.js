@@ -29,6 +29,8 @@ if (supabaseUrl && supabaseKey) {
 const DATA_DIR = process.env.VERCEL ? '/tmp' : path.join(__dirname, '../data');
 const TASKS_FILE = path.join(DATA_DIR, 'tasks.json');
 
+const SETS_FILE = path.join(DATA_DIR, 'task_sets.json');
+
 if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
 }
@@ -54,7 +56,77 @@ function writeLocalTasks(tasks) {
   }
 }
 
+function readLocalTaskSets() {
+  try {
+    if (!fs.existsSync(SETS_FILE)) {
+      writeLocalTaskSets(['Default']);
+      return ['Default'];
+    }
+    const data = fs.readFileSync(SETS_FILE, 'utf8');
+    return JSON.parse(data);
+  } catch (error) {
+    return ['Default'];
+  }
+}
+
+function writeLocalTaskSets(sets) {
+  try {
+    fs.writeFileSync(SETS_FILE, JSON.stringify(sets, null, 2), 'utf8');
+  } catch (error) {
+    console.error('Error writing task sets file:', error);
+  }
+}
+
 // Data Abstraction Layer (Supabase or Local Storage)
+
+export async function getAllTaskSets() {
+  let sets = new Set(['Default']);
+  if (supabase) {
+    try {
+      const { data: dbSets } = await supabase.from('task_sets').select('name');
+      if (dbSets) {
+        dbSets.forEach(s => sets.add(s.name));
+      }
+      const { data: taskSets } = await supabase.from('tasks').select('task_set');
+      if (taskSets) {
+        taskSets.forEach(t => {
+          if (t.task_set) sets.add(t.task_set);
+        });
+      }
+      return Array.from(sets);
+    } catch (err) {
+      console.error('Supabase get task_sets error:', err);
+    }
+  }
+
+  const localSets = readLocalTaskSets();
+  localSets.forEach(s => sets.add(s));
+  const localTasks = readLocalTasks();
+  localTasks.forEach(t => {
+    if (t.taskSet || t.task_set) sets.add(t.taskSet || t.task_set);
+  });
+  return Array.from(sets);
+}
+
+export async function createTaskSet(setName) {
+  const name = setName.trim();
+  if (!name) return null;
+
+  if (supabase) {
+    try {
+      await supabase.from('task_sets').insert({ name }).select().single();
+    } catch (err) {
+      console.error('Supabase insert task_set error:', err);
+    }
+  }
+
+  const localSets = readLocalTaskSets();
+  if (!localSets.includes(name)) {
+    localSets.push(name);
+    writeLocalTaskSets(localSets);
+  }
+  return name;
+}
 
 export async function getAllTasks() {
   if (supabase) {
