@@ -11,15 +11,19 @@
  */
 
 import http from 'http';
+import https from 'https';
 
-const API_BASE = process.env.TASK_API_URL || 'http://localhost:3001/api';
+const DEFAULT_API = 'https://plan-work-nu.vercel.app/api';
+const API_BASE = process.env.TASK_API_URL || DEFAULT_API;
 
 function request(method, path, body = null) {
   return new Promise((resolve, reject) => {
     const url = new URL(`${API_BASE}${path}`);
+    const client = url.protocol === 'https:' ? https : http;
+
     const options = {
       hostname: url.hostname,
-      port: url.port || 80,
+      port: url.port || (url.protocol === 'https:' ? 443 : 80),
       path: url.pathname + url.search,
       method: method,
       headers: {
@@ -27,7 +31,7 @@ function request(method, path, body = null) {
       }
     };
 
-    const req = http.request(options, (res) => {
+    const req = client.request(options, (res) => {
       let data = '';
       res.on('data', chunk => data += chunk);
       res.on('end', () => {
@@ -41,7 +45,7 @@ function request(method, path, body = null) {
     });
 
     req.on('error', (err) => {
-      reject(new Error(`API Error: ${err.message}. Make sure server is running on http://localhost:3001`));
+      reject(new Error(`API Error: ${err.message}. Make sure API is accessible at ${API_BASE}`));
     });
 
     if (body) {

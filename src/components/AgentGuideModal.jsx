@@ -18,12 +18,12 @@ export default function AgentGuideModal({ isOpen, onClose }) {
 ./task-agent.sh complete task-101 --log="All unit tests passed"`;
 
   const curlExample = `# Update task status to In Progress
-curl -X PATCH http://localhost:3001/api/tasks/task-101 \\
+curl -X PATCH https://plan-work-nu.vercel.app/api/tasks/task-101 \\
   -H "Content-Type: application/json" \\
   -d '{"status":"in_progress","progress":50,"logNote":"Started writing code","author":"Antigravity AI"}'
 
 # Mark task as DONE
-curl -X PATCH http://localhost:3001/api/tasks/task-101 \\
+curl -X PATCH https://plan-work-nu.vercel.app/api/tasks/task-101 \\
   -H "Content-Type: application/json" \\
   -d '{"status":"done","progress":100,"logNote":"Task finished successfully"}'`;
 

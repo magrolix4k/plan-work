@@ -1,5 +1,61 @@
 [
   {
+    "id": "task-1785812860383",
+    "title": "RO Toolbox: รีดีไซน์ Race Finder เป็น card grid",
+    "description": "",
+    "status": "done",
+    "priority": "medium",
+    "tags": [],
+    "assignee": "Claude Code",
+    "progress": 100,
+    "logs": [
+      {
+        "id": "log-1785812878701",
+        "timestamp": "2026-08-04T03:07:58.701Z",
+        "author": "Claude Code",
+        "action": "STATUS_CHANGE",
+        "note": "Moved status from IN_PROGRESS to DONE. Note: tsc --noEmit, eslint, next build ผ่านหมด bundle /race ลดจาก 139KB เหลือ 34KB หลังถอด recharts งานเสร็จสมบูรณ์"
+      },
+      {
+        "id": "log-1785812860383",
+        "timestamp": "2026-08-04T03:07:40.383Z",
+        "author": "Claude Code",
+        "action": "CREATED",
+        "note": "ตามฟีดแบ็กผู้ใช้: เอา pie/bar chart ออก (พร้อมถอด recharts dependency), เปลี่ยนตาราง boss list เป็น card grid ที่มีพื้นหลัง/ขอบสีตาม race ให้เห็นแล้วรู้ทันที ทดสอบ fuzzy search, filter, sort, responsive แล้วผ่านหมด"
+      }
+    ],
+    "createdAt": "2026-08-04T03:07:40.383Z",
+    "updatedAt": "2026-08-04T03:07:58.701Z"
+  },
+  {
+    "id": "task-1785812694746",
+    "title": "เชื่อมต่อ Claude Code กับ plan-work task tracker",
+    "description": "",
+    "status": "done",
+    "priority": "medium",
+    "tags": [],
+    "assignee": "Claude Code",
+    "progress": 100,
+    "logs": [
+      {
+        "id": "log-1785812708695",
+        "timestamp": "2026-08-04T03:05:08.695Z",
+        "author": "Claude Code",
+        "action": "STATUS_CHANGE",
+        "note": "Moved status from IN_PROGRESS to DONE. Note: ยืนยันว่า Claude Code (ผม) จะสร้าง/อัปเดต task ในระบบนี้ทุกครั้งที่ผู้ใช้สั่งงานจากนี้ไป โดยจะ create เมื่อเริ่มงาน, update progress ระหว่างทำ, และ complete เมื่อเสร็จ"
+      },
+      {
+        "id": "log-1785812694746",
+        "timestamp": "2026-08-04T03:04:54.746Z",
+        "author": "Claude Code",
+        "action": "CREATED",
+        "note": "ตรวจสอบโปรเจกต์ plan-work: พบว่าเป็น Kanban task tracker (React+Vite+Express+Supabase) พร้อม CLI (task-agent.sh) สำหรับให้ AI agent สร้าง/อัปเดตงานได้ ทดสอบเชื่อมต่อกับ API ที่ localhost:3001 สำเร็จ"
+      }
+    ],
+    "createdAt": "2026-08-04T03:04:54.746Z",
+    "updatedAt": "2026-08-04T03:05:08.695Z"
+  },
+  {
     "id": "task-1785812291389",
     "title": "Live Supabase PostgreSQL Task",
     "description": "",
