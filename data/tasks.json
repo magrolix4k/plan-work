@@ -1,0 +1,166 @@
+[
+  {
+    "id": "task-1785811500448",
+    "title": "Test AI Task Creation",
+    "description": "",
+    "status": "plan",
+    "priority": "high",
+    "tags": [],
+    "assignee": "Antigravity AI",
+    "progress": 0,
+    "logs": [
+      {
+        "id": "log-1785811500448",
+        "timestamp": "2026-08-04T02:45:00.448Z",
+        "author": "Antigravity AI",
+        "action": "CREATED",
+        "note": "Task created by CLI test"
+      }
+    ],
+    "createdAt": "2026-08-04T02:45:00.448Z",
+    "updatedAt": "2026-08-04T02:45:00.448Z"
+  },
+  {
+    "id": "task-101",
+    "title": "Setup Authentication Middleware",
+    "description": "Implement JWT authentication and role-based access control for backend endpoints.",
+    "status": "done",
+    "priority": "high",
+    "tags": [
+      "backend",
+      "security",
+      "api"
+    ],
+    "assignee": "Antigravity AI",
+    "progress": 100,
+    "logs": [
+      {
+        "id": "log-1785811457556",
+        "timestamp": "2026-08-04T02:44:17.556Z",
+        "author": "AI Agent",
+        "action": "STATUS_CHANGE",
+        "note": "Moved status from IN_PROGRESS to DONE. Note: Auth implementation finished and tested"
+      },
+      {
+        "id": "log-1785811456143",
+        "timestamp": "2026-08-04T02:44:16.143Z",
+        "author": "AI Agent",
+        "action": "STATUS_CHANGE",
+        "note": "Moved status from PLAN to IN_PROGRESS. Note: Implementing JWT generation function"
+      },
+      {
+        "id": "log-1",
+        "timestamp": "2026-08-04T00:44:05.183Z",
+        "author": "User",
+        "action": "CREATED",
+        "note": "Task created and assigned to AI Agent for planning."
+      },
+      {
+        "id": "log-2",
+        "timestamp": "2026-08-04T01:44:05.183Z",
+        "author": "Antigravity AI",
+        "action": "UPDATE_STATUS",
+        "note": "Analyzed security specs. Drafted JWT validation strategy in plan status."
+      }
+    ],
+    "createdAt": "2026-08-04T00:44:05.183Z",
+    "updatedAt": "2026-08-04T02:44:17.556Z"
+  },
+  {
+    "id": "task-102",
+    "title": "Build Dark Glassmorphic Kanban Board",
+    "description": "Design dynamic drag-and-drop web UI with real-time SSE updates.",
+    "status": "in_progress",
+    "priority": "urgent",
+    "tags": [
+      "frontend",
+      "ui/ux",
+      "realtime"
+    ],
+    "assignee": "Antigravity AI",
+    "progress": 75,
+    "logs": [
+      {
+        "id": "log-3",
+        "timestamp": "2026-08-03T23:44:05.183Z",
+        "author": "User",
+        "action": "CREATED",
+        "note": "Requested modern dark mode task tracker with AI agent integration."
+      },
+      {
+        "id": "log-4",
+        "timestamp": "2026-08-04T01:14:05.183Z",
+        "author": "Antigravity AI",
+        "action": "PROGRESS",
+        "note": "Scaffolded Vite React app, configured Express API & SSE broadcast channel."
+      }
+    ],
+    "createdAt": "2026-08-03T23:44:05.183Z",
+    "updatedAt": "2026-08-04T01:14:05.183Z"
+  },
+  {
+    "id": "task-103",
+    "title": "CLI Tool for AI Task Updates",
+    "description": "Create task-agent.js CLI utility for quick terminal status updates.",
+    "status": "in_review",
+    "priority": "medium",
+    "tags": [
+      "cli",
+      "automation",
+      "tooling"
+    ],
+    "assignee": "Antigravity AI",
+    "progress": 90,
+    "logs": [
+      {
+        "id": "log-5",
+        "timestamp": "2026-08-03T22:44:05.183Z",
+        "author": "Antigravity AI",
+        "action": "CREATED",
+        "note": "CLI script created to allow 1-line status updates from shell."
+      }
+    ],
+    "createdAt": "2026-08-03T22:44:05.183Z",
+    "updatedAt": "2026-08-04T02:14:05.183Z"
+  },
+  {
+    "id": "task-104",
+    "title": "Project Initial Architecture Design",
+    "description": "Define workflow states (Backlog -> Plan -> In Progress -> In Review -> Done) and API endpoints.",
+    "status": "done",
+    "priority": "high",
+    "tags": [
+      "architecture",
+      "docs"
+    ],
+    "assignee": "User & AI",
+    "progress": 100,
+    "logs": [
+      {
+        "id": "log-6",
+        "timestamp": "2026-08-03T21:44:05.183Z",
+        "author": "User",
+        "action": "APPROVED",
+        "note": "Implementation plan approved by user."
+      }
+    ],
+    "createdAt": "2026-08-03T21:44:05.183Z",
+    "updatedAt": "2026-08-03T22:14:05.183Z"
+  },
+  {
+    "id": "task-105",
+    "title": "PostgreSQL Database Connector",
+    "description": "Evaluate PostgreSQL integration for persistent relational schema.",
+    "status": "backlog",
+    "priority": "low",
+    "tags": [
+      "database",
+      "feature"
+    ],
+    "assignee": "Unassigned",
+    "progress": 0,
+    "logs": [],
+    "createdAt": "2026-08-03T20:44:05.183Z",
+    "updatedAt": "2026-08-03T20:44:05.183Z"
+  }
+]
