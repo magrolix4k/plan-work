@@ -26,7 +26,10 @@ export default function AgentGuideModal({ isOpen, onClose }) {
 ./task-agent.sh show task-101
 
 # 1. Create the task the moment you understand the ask - BEFORE starting work
-./task-agent.sh create "Implement auth endpoint" --set="Sprint 1" --status=plan --priority=high
+#    Title stays a title; scope, files and reasoning go in --desc.
+./task-agent.sh create "Implement auth endpoint" \\
+  --desc="Add POST /auth/login issuing a JWT, plus refresh-token rotation. Touches routes/auth.js and middleware/session.js." \\
+  --set="Sprint 1" --status=plan --priority=high
 
 # 2. Only AFTER the human agrees to the plan
 ./task-agent.sh update task-101 --status=in_progress --progress=30 --log="Starting on JWT validation"
@@ -53,7 +56,8 @@ curl -X PATCH https://plan-work-nu.vercel.app/api/tasks/task-101 \\
 เมื่อทำงานในโปรเจกต์นี้ ให้อัพเดทสถานะงานใน Task Tracker ผ่าน CLI เสมอ และห้ามข้ามขั้น:
 
 1. สร้างงาน (ทันทีที่เข้าใจโจทย์ ก่อนลงมือ):
-   ./task-agent.sh create "<ชื่อ Task>" --set="Sprint 1" --status=plan
+   ./task-agent.sh create "<ชื่อสั้นๆ>" --desc="<ขอบเขต ไฟล์ที่แตะ เหตุผล>" --set="Sprint 1" --status=plan
+   title = ชื่อสั้นๆ ของสิ่งที่ส่งมอบ อย่ายัดรายละเอียดลง title ให้ใส่ใน --desc
 2. เริ่มทำ (เฉพาะหลังจากที่ผู้ใช้ตกลง plan แล้วเท่านั้น):
    ./task-agent.sh update <task-id> --status=in_progress --progress=30 --log="กำลังเริ่ม..."
 3. ทำเสร็จ ส่งให้ review (ไกลสุดที่ agent ย้ายเองได้):

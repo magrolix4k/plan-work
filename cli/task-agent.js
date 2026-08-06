@@ -285,20 +285,28 @@ Statuses: backlog | plan | in_progress | in_review | done
 Commands:
   list    [--status=...] [--set=NAME] [--limit=N] [--all]   List tasks (hides DONE unless --all)
   show    <id>                                              Full detail + log history of one task
-  create  <title> [--status=...] [--priority=...] [--set=NAME] [--assignee=...] [--log=...]
-  update  <id> [--status=...] [--progress=0-100] [--log=...]
+  create  <title> [--desc="..."] [--status=...] [--priority=...] [--set=NAME] [--assignee=...] [--log=...]
+  update  <id> [--desc="..."] [--status=...] [--progress=0-100] [--title="..."] [--log=...]
   review  <id> [--log="..."]                                Hand over for review (-> in_review)
   log     <id> --note="..."                                 Add a progress log note to a task
+
+Title vs description:
+  --title is a title: a short noun phrase naming the deliverable, aim under 50 chars.
+  --description (alias --desc) carries the scope, the files touched and the reasoning.
+  The board renders the description on the card and in full in the task modal, so
+  putting detail there costs nothing and keeps the column readable.
 
 Notes:
   - Agents cannot set status=done; the API rejects it. Use 'review' and let the reviewer close it.
   - --set is required whenever the work belongs to a Task Set; ask which set rather than guessing.
   - Agent name defaults to "${AGENT_NAME}" (override with TASK_AGENT_NAME).
+  - Write titles, descriptions and logs as normal prose. They outlive the chat and are
+    read by teammates, so terse chat styles (e.g. caveman mode) do not belong here.
 
 Examples:
   node cli/task-agent.js list --set=PLX
   node cli/task-agent.js show task-101
-  node cli/task-agent.js create "Refactor API routing" --status=plan --priority=high --set=PLX
+  node cli/task-agent.js create "Refactor API routing" --desc="Split the monolithic router into per-feature modules so each team owns its own routes." --status=plan --priority=high --set=PLX
   node cli/task-agent.js update task-101 --status=in_progress --progress=40 --log="Writing middleware"
   node cli/task-agent.js review task-101 --log="Tests passed, ready for review"
 `);
