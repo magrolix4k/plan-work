@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import * as db from '../server/db.js';
+import { checkStatusRules } from '../server/task-rules.js';
 
 dotenv.config();
 
@@ -60,6 +61,10 @@ app.get('/api/tasks/:id', async (req, res) => {
 // POST create task
 app.post('/api/tasks', async (req, res) => {
   try {
+    const violation = checkStatusRules(req, req.body.status);
+    if (violation) {
+      return res.status(violation.status).json(violation.body);
+    }
     const newTask = await db.createTask(req.body);
     res.status(201).json({ success: true, task: newTask });
   } catch (err) {
@@ -70,6 +75,10 @@ app.post('/api/tasks', async (req, res) => {
 // PATCH update task
 app.patch('/api/tasks/:id', async (req, res) => {
   try {
+    const violation = checkStatusRules(req, req.body.status);
+    if (violation) {
+      return res.status(violation.status).json(violation.body);
+    }
     const updatedTask = await db.updateTask(req.params.id, req.body);
     if (!updatedTask) {
       return res.status(404).json({ success: false, message: 'Task not found' });
